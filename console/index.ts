@@ -1,21 +1,13 @@
 /**
- * 9armbot Console
+ * Deezcord CLI
  *   Features:
- *   - db : Database Service [services/db.ts]
- *   - bot : Bot Service [services/bot.ts]
+ *   - m (msg) : Send message to specific channel in a guild
+ *   - u (user) : Get user tag from name
  */
 
 import repl from 'repl';
-import { Client, Intents } from 'discord.js';
+import { Client, Intents, TextChannel } from 'discord.js';
 import dotenv from 'dotenv';
-import { muteHandler } from '../src/muteHandler';
-// import _ from 'lodash';
-//  import { Db } from './services/db'
-//  import commands from './services/bot'
-//  import Player from './services/models/player'
-//  import Widget from './services/widget'
-//  import setting from './services/setting'
-//  import prisma from '../prisma/client'
 
 const replServer = repl.start({
   prompt: `deezcord(${process.env.NODE_ENV || 'development'}) > `,
@@ -38,38 +30,41 @@ const client = new Client({
 });
 
 client.on('ready', () => {
-  console.log(`${client.user!.tag}!`);
+  console.log(`Connected as ${client.user!.tag}!`);
+  console.log(
+    client.guilds.cache.map(guild => ({ name: guild.name, id: guild.id }))
+  );
 });
-
-client.on('messageCreate', muteHandler);
 
 const token = process.env.DISCORD_TOKEN;
 
 client.login(token);
-//  const db = new Db()
-//  const widget = new Widget(true)
 
-//  const dbName = process.env.DATABASE_URL!.split(':')[1]
-//  console.log(`Database "${dbName}" loaded, press enter to continue.`)
+async function msg(guildId: string, channelName: string, message: string) {
+  console.log('msg', { channelName, message });
+  const guild = client.guilds.cache.find(guild => guild.id === guildId);
 
-//  // Access db eg. `await db.read()`
-//  //   Since it is asynchronous function you have to use await keyword.
-//  //   Type `db.` then press Tab to see all available commands
-//  replServer.context.db = db
-//  replServer.context.prisma = prisma
-//  replServer.context.Player = Player
+  if (!guild) {
+    console.warn('Guild not found!');
+    return;
+  }
 
-//  // Bot commands eg. `await bot.coin(username)`
-//  replServer.context.bot = commands
+  const channel = guild.channels.cache.find(
+    channel => channel.name === channelName
+  ) as TextChannel;
 
-//  // Widget commands eg. `widget.testWidget()`
-//  replServer.context.widget = widget
+  if (!channel) {
+    console.warn('Channel not found!');
+    return;
+  }
 
-//  setting.init().then(() => {
-//    setting.startAutoSync(false)
-//    replServer.context.setting = setting
-//  })
+  channel.send(message);
+}
 
-//  // Lodash (_ is reserved, use l or __ instead)
-//  replServer.context.l = _
-//  replServer.context.__ = _
+function getUserTagFromName(name: string) {
+  const user = client.users.cache.find(user => user.username === name);
+  return user?.toString() || 'Not found!';
+}
+
+replServer.context.m = msg;
+replServer.context.u = getUserTagFromName;

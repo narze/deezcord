@@ -1,7 +1,10 @@
 import { Message, Role } from 'discord.js';
 
 export const muteHandler = async (message: Message) => {
-  // console.log(message.content);
+  // console.log('user', message.author.id);
+  // console.log('guild', message.guildId);
+  // console.log('roles', message.member?.roles.cache);
+  console.log(message.content);
 
   if (message.content.startsWith('!hello')) {
     message.reply('Hello!');
