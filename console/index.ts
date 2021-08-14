@@ -112,6 +112,20 @@ function getUserTagFromName(name: string) {
   return user?.toString() || 'Not found!';
 }
 
+async function instaban(guildId: string, username: string) {
+  const guild = client.guilds.cache.find(guild => guild.id === guildId);
+
+  if (!guild) {
+    console.warn('Guild not found!');
+    return;
+  }
+
+  const user = await guild.members.fetch(username);
+
+  await guild.members.ban(user, { reason: 'Phishing', days: 7 });
+}
+
 replServer.context.m = msg;
 replServer.context.u = getUserTagFromName;
 replServer.context.f = fetchMessages;
+replServer.context.ban = instaban;
