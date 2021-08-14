@@ -3,6 +3,7 @@
  *   Features:
  *   - m (msg) : Send message to specific channel in a guild
  *   - u (user) : Get user tag from name
+ *   - f (fetch messages) : Fetch messages from a channel
  */
 
 import repl from 'repl';
@@ -40,8 +41,12 @@ const token = process.env.DISCORD_TOKEN;
 
 client.login(token);
 
-async function msg(guildId: string, channelName: string, message: string) {
-  console.log('msg', { channelName, message });
+async function msg(
+  guildId: string,
+  channelName: string,
+  message: string,
+  ping: boolean = false
+) {
   const guild = client.guilds.cache.find(guild => guild.id === guildId);
 
   if (!guild) {
@@ -58,7 +63,48 @@ async function msg(guildId: string, channelName: string, message: string) {
     return;
   }
 
-  channel.send(message);
+  const msg = await channel.send(message);
+
+  if (ping) {
+    msg.delete();
+  }
+}
+
+async function fetchMessages(
+  guildId: string,
+  channelName: string,
+  limit: number = 20
+) {
+  const guild = client.guilds.cache.find(guild => guild.id === guildId);
+
+  if (!guild) {
+    console.warn('Guild not found!');
+    return;
+  }
+
+  const channel = guild.channels.cache.find(
+    channel => channel.name === channelName
+  ) as TextChannel;
+
+  if (!channel) {
+    console.warn('Channel not found!');
+    return;
+  }
+
+  try {
+    const messages = await channel.messages.fetch({ limit });
+
+    return messages
+      .map(msg => ({
+        content: msg.content,
+        name: msg.author.username,
+        createdAt: msg.createdAt,
+      }))
+      .reverse();
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
 }
 
 function getUserTagFromName(name: string) {
@@ -68,3 +114,4 @@ function getUserTagFromName(name: string) {
 
 replServer.context.m = msg;
 replServer.context.u = getUserTagFromName;
+replServer.context.f = fetchMessages;
