@@ -1,6 +1,7 @@
 import { Client, Intents } from 'discord.js';
 import dotenv from 'dotenv';
 import { muteHandler } from './muteHandler';
+import { pingHandler } from './pingHandler';
 dotenv.config();
 
 const client = new Client({
@@ -28,6 +29,7 @@ client.on('ready', () => {
 });
 
 client.on('messageCreate', muteHandler);
+client.on('messageCreate', pingHandler);
 
 const token = process.env.DISCORD_TOKEN;
 
