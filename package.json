@@ -12,7 +12,7 @@
   },
   "scripts": {
     "dev": "node-dev .",
-    "start": "tsdx watch",
+    "start": "node .",
     "build": "tsdx build",
     "test": "tsdx test",
     "test:watch": "tsdx test --watch",
